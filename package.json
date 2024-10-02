@@ -1,0 +1,29 @@
+{
+  "name": "credential-eip712jwt",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "exports": {
+    ".": "./build/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@veramo/core": "file:../veramo/packages/core",
+    "@veramo/core-types": "file:../veramo/packages/core-types",
+    "@veramo/credential-w3c": "file:../veramo/packages/credential-w3c",
+    "@veramo/utils": "file:../veramo/packages/utils",
+    "canonicalize": "^2.0.0",
+    "did-jwt": "file:../did-jwt",
+    "did-jwt-eth-typed-data-signature": "file:../did-jwt-eth-typed-data-signature",
+    "did-jwt-vc": "file:../did-jwt-vc",
+    "ethr-did": "^3.0.21"
+  }
+}
