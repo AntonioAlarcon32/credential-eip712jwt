@@ -47,6 +47,8 @@ import {
   createVerifiablePresentationJwt,
   verifyPresentation as verifyPresentationJWT,
   normalizePresentation,
+  JwtCredentialPayload,
+  JwtPresentationPayload,
 } from 'did-jwt-vc';
 
 import { EthrDID } from 'ethr-did';
@@ -96,7 +98,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
     args: ICreateVerifiableCredentialArgs,
     context: IssuerAgentContext
   ): Promise<VerifiableCredential> {
-    let { proofFormat, keyRef, removeOriginalFields, save, now, ...otherOptions } = args;
+    const { ...otherOptions } = args;
     const credentialContext = processEntryToArray(args?.credential?.['@context'], MANDATORY_CREDENTIAL_CONTEXT);
 
     const credentialType = processEntryToArray(args?.credential?.type, 'VerifiableCredential');
@@ -118,8 +120,8 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
       throw new Error(`invalid_argument: args.credential.issuer must be a DID managed by this agent. ${e}`);
     }
 
-    const key = pickSigningKey(identifier, keyRef);
-    keyRef = args.keyRef;
+    const key = pickSigningKey(identifier);
+    let keyRef = args.keyRef;
 
     identifier = await context.agent.didManagerGet({ did: issuer });
 
@@ -143,7 +145,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
     if (!extendedKey) throw Error('key_not_found: The signing key is not available in the issuer DID document');
     try {
       chainId = getChainId(extendedKey.meta.verificationMethod);
-    } catch (e) {
+    } catch {
       chainId = 1;
     }
     const domain = {
@@ -163,18 +165,21 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
       signer: jwtSigner,
     }) as Issuer;
 
-    // const signer = this.wrapSigner(context, key, alg)
-    const jwt = await createVerifiableCredentialJwt(credential as any, issuerJwt, otherOptions);
+    const jwt = await createVerifiableCredentialJwt(
+      credential as unknown as JwtCredentialPayload,
+      issuerJwt,
+      otherOptions
+    );
     return normalizeCredential(jwt);
   }
 
   /** {@inheritdoc ICredentialVerifier.verifyCredential} */
   async verifyCredential(args: IVerifyCredentialArgs, context: VerifierAgentContext): Promise<IVerifyResult> {
-    let { credential, policies, ...otherOptions } = args;
+    const { credential, policies, ...otherOptions } = args;
     let verifiedCredential: VerifiableCredential;
     let verificationResult: IVerifyResult | undefined = { verified: false };
-    let jwt: string = typeof credential === 'string' ? credential : credential.proof.jwt;
-    let errorCode, message;
+    const jwt: string = typeof credential === 'string' ? credential : credential.proof.jwt;
+    let message;
     const resolver = {
       resolve: (didUrl: string) =>
         context.agent.resolveDid({
@@ -210,9 +215,8 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
           verificationResult.error = new Error('invalid_credential: Credential JSON does not match JWT payload');
         }
       }
-    } catch (e: any) {
-      errorCode = e.errorCode;
-      message = e.message;
+    } catch (e) {
+      message = (e as Error).message;
     }
     if (verificationResult.verified) {
       return verificationResult;
@@ -221,7 +225,6 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
       verified: false,
       error: {
         message,
-        errorCode: errorCode ? errorCode : message?.split(':')[0],
       },
     };
   }
@@ -231,7 +234,8 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
     args: ICreateVerifiablePresentationArgs,
     context: IssuerAgentContext
   ): Promise<VerifiablePresentation> {
-    let { presentation, proofFormat, challenge, removeOriginalFields, keyRef, save, now, ...otherOptions } = args;
+    const { challenge, removeOriginalFields, ...otherOptions } = args;
+    let { presentation, now, keyRef } = args;
     const presentationContext: string[] = processEntryToArray(
       args?.presentation?.['@context'],
       MANDATORY_CREDENTIAL_CONTEXT
@@ -263,7 +267,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
     let identifier: IIdentifier;
     try {
       identifier = await context.agent.didManagerGet({ did: holder });
-    } catch (e) {
+    } catch {
       throw new Error('invalid_argument: presentation.holder must be a DID managed by this agent');
     }
     const key = pickSigningKey(identifier, keyRef);
@@ -273,9 +277,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
       presentation.issuanceDate = (now instanceof Date ? now : new Date()).toISOString();
     }
 
-    let alg = 'EthTypedDataSignature';
-
-    keyRef = args.keyRef;
+    const alg = 'EthTypedDataSignature';
 
     identifier = await context.agent.didManagerGet({ did: holder });
 
@@ -299,10 +301,10 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
     if (!extendedKey) throw Error('key_not_found: The signing key is not available in the issuer DID document');
     try {
       chainId = getChainId(extendedKey.meta.verificationMethod);
-    } catch (e) {
+    } catch {
       chainId = 1;
     }
-    let domain = {
+    const domain = {
       chainId,
       name: 'VerifiablePresentation',
       version: '1',
@@ -313,7 +315,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
     const jwtSigner = ethTypedDataSigner(ethersSigner, domain);
 
     const jwt = await createVerifiablePresentationJwt(
-      presentation as any,
+      presentation as unknown as JwtPresentationPayload,
       { did: identifier.did, signer: jwtSigner, alg },
       { removeOriginalFields, challenge, ...otherOptions }
     );
@@ -323,7 +325,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
 
   /** {@inheritdoc @veramo/credential-w3c#AbstractCredentialProvider.verifyPresentation} */
   async verifyPresentation(args: IVerifyPresentationArgs, context: VerifierAgentContext): Promise<IVerifyResult> {
-    let { presentation, domain, challenge, fetchRemoteContexts, policies, ...otherOptions } = args;
+    const { presentation, domain, challenge, policies, ...otherOptions } = args;
     let jwt: string;
     if (typeof presentation === 'string') {
       jwt = presentation;
@@ -352,7 +354,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
       }
     }
 
-    let message, errorCode;
+    let message;
     try {
       const result = await verifyPresentationJWT(jwt, resolver, {
         challenge,
@@ -373,15 +375,14 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
           verifiablePresentation: result,
         };
       }
-    } catch (e: any) {
-      message = e.message;
-      errorCode = e.errorCode;
+    } catch (e) {
+      message = (e as Error).message;
     }
     return {
       verified: false,
       error: {
         message,
-        errorCode: errorCode ? errorCode : message?.split(':')[0],
+        errorCode: message?.split(':')[0],
       },
     };
   }
