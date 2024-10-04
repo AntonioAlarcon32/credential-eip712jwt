@@ -1,1 +1,1 @@
-export { CredentialProviderEip712JWT } from './agent'
+export { CredentialProviderEip712JWT } from './agent';
