@@ -4,9 +4,9 @@
   "main": "build/index.js",
   "exports": {
     ".": {
+      "types": "./dist/esm/index.d.ts",
       "require": "./dist/cjs/index.js",
-      "import": "./dist/esm/index.mjs",
-      "types": "./dist/esm/index.d.ts"
+      "import": "./dist/esm/index.mjs"
     }
   },
   "scripts": {
@@ -30,7 +30,7 @@
     "canonicalize": "^2.0.0",
     "did-jwt": "github:AntonioAlarcon32/did-jwt#dist",
     "did-jwt-eth-typed-data-signature": "file:../did-jwt-eth-typed-data-signature",
-    "did-jwt-vc": "github:AntonioAlarcon32/did-jwt-vc",
+    "did-jwt-vc": "^4.0.4",
     "ethr-did": "^3.0.21"
   }
 }

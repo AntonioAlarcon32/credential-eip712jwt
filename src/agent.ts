@@ -30,7 +30,7 @@ import {
 
 import { AbstractCredentialProvider } from '@veramo/credential-w3c';
 
-import { decodeJWT } from 'did-jwt';
+import { decodeJWT, AddSigningAlgorithm, AddVerifierAlgorithm } from 'did-jwt';
 
 import {
   ethTypedDataSigner,
@@ -49,8 +49,6 @@ import {
   normalizePresentation,
   JwtCredentialPayload,
   JwtPresentationPayload,
-  AddSigningAlgorithm,
-  AddVerifierAlgorithm,
 } from 'did-jwt-vc';
 
 import { EthrDID } from 'ethr-did';
