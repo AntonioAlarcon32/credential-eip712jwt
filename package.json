@@ -3,17 +3,23 @@
   "version": "1.0.0",
   "main": "build/index.js",
   "exports": {
-    ".": "./build/index.js"
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.mjs",
+      "types": "./dist/esm/index.d.ts"
+    }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\""
+    "build": "tsup",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "tsup": "^8.3.0",
     "typescript": "^5.6.2"
   },
   "dependencies": {
@@ -22,9 +28,9 @@
     "@veramo/credential-w3c": "file:../veramo/packages/credential-w3c",
     "@veramo/utils": "file:../veramo/packages/utils",
     "canonicalize": "^2.0.0",
-    "did-jwt": "file:../did-jwt",
+    "did-jwt": "github:AntonioAlarcon32/did-jwt#dist",
     "did-jwt-eth-typed-data-signature": "file:../did-jwt-eth-typed-data-signature",
-    "did-jwt-vc": "file:../did-jwt-vc",
+    "did-jwt-vc": "github:AntonioAlarcon32/did-jwt-vc",
     "ethr-did": "^3.0.21"
   }
 }

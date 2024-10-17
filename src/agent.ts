@@ -30,7 +30,7 @@ import {
 
 import { AbstractCredentialProvider } from '@veramo/credential-w3c';
 
-import { AddSigningAlgorithm, AddVerifierAlgorithm, decodeJWT } from 'did-jwt';
+import { decodeJWT } from 'did-jwt';
 
 import {
   ethTypedDataSigner,
@@ -49,6 +49,8 @@ import {
   normalizePresentation,
   JwtCredentialPayload,
   JwtPresentationPayload,
+  AddSigningAlgorithm,
+  AddVerifierAlgorithm,
 } from 'did-jwt-vc';
 
 import { EthrDID } from 'ethr-did';
@@ -57,6 +59,7 @@ import canonicalize from 'canonicalize';
 
 export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
   constructor() {
+    console.log("Added!")
     AddSigningAlgorithm('EthTypedDataSignature', EthTypedDataSignerAlgorithm());
     AddVerifierAlgorithm('EthTypedDataSignature', verifyEthTypedDataSignature, validSignatures);
   }
@@ -161,6 +164,7 @@ export class CredentialProviderEip712JWT implements AbstractCredentialProvider {
     const issuerJwt = new EthrDID({
       chainNameOrId: chainId,
       identifier: identifier.did,
+      //@ts-ignore
       alg: 'EthTypedDataSignature',
       signer: jwtSigner,
     }) as Issuer;
