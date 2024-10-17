@@ -29,7 +29,7 @@
     "@veramo/utils": "file:../veramo/packages/utils",
     "canonicalize": "^2.0.0",
     "did-jwt": "github:AntonioAlarcon32/did-jwt#dist",
-    "did-jwt-eth-typed-data-signature": "file:../did-jwt-eth-typed-data-signature",
+    "did-jwt-eth-typed-data-signature": "github:AntonioAlarcon32/did-jwt-eth-typed-data-signature",
     "did-jwt-vc": "^4.0.4",
     "ethr-did": "^3.0.21"
   }
